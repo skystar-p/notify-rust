@@ -55,6 +55,31 @@ impl Image {
         }
     }
 
+    /// Creates an image from a raw vector of bytes with alpha
+    pub fn from_rgba(width: i32, height: i32, data: Vec<u8>) -> Result<Self, ImageError> {
+        const MAX_SIZE: i32 = 0x0fff_ffff;
+        if width > MAX_SIZE || height > MAX_SIZE {
+            return Err(ImageError::TooBig);
+        }
+
+        let channels = 4i32;
+        let bits_per_sample = 8;
+
+        if data.len() != (width * height * channels) as usize {
+            Err(ImageError::WrongDataSize)
+        } else {
+            Ok(Self {
+                width,
+                height,
+                bits_per_sample,
+                channels,
+                data,
+                rowstride: width * channels,
+                alpha: true,
+            })
+        }
+    }
+
     ///  Attempts to open the given path as image
     pub fn open<T: AsRef<Path> + Sized>(path: T) -> Result<Self, ImageError> {
         let dyn_img = image::open(&path).map_err(ImageError::CantOpen)?;
